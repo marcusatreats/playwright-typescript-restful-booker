@@ -156,4 +156,40 @@ test.describe.serial('Booking API', () => {
 
     });
 
+    test('DELETE - delete a booking', async ({ request }) => {
+        // Create a booking specifically for this delete test
+        const createResponse = await request.post('/booking', {
+            data: {
+                firstname: 'Delete',
+                lastname: 'Me',
+                totalprice: 100,
+                depositpaid: false,
+                bookingdates: {
+                    checkin: '2026-09-01',
+                    checkout: '2026-09-07'
+                },
+                additionalneeds: 'None'
+            }
+        });
+
+        const createBody = await createResponse.json();
+        const deleteId = createBody.bookingid;
+        console.log(`Created booking to delete: ${deleteId}`);
+
+        // Now delete it
+        const deleteResponse = await request.delete(`/booking/${deleteId}`, {
+            headers: {
+                'Cookie': `token=${token}`
+            }
+        });
+
+        console.log(`Delete status: ${deleteResponse.status()}`);
+        expect(deleteResponse.status()).toBe(201);
+
+        // Verify it's gone
+        const getResponse = await request.get(`/booking/${deleteId}`);
+        expect(getResponse.status()).toBe(404);
+        console.log(`Booking ${deleteId} confirmed deleted`);
+    });
+
 });
