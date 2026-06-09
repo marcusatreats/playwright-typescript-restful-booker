@@ -129,4 +129,31 @@ test.describe.serial('Booking API', () => {
         expect(response.status()).toBe(403);
     });
 
+    test('POST - invalid date format returns error', async ({ request }) => {
+        const response = await request.post('/booking', {
+            data: {
+                firstname: 'Mark',
+                lastname: 'Canning',
+                totalprice: 150,
+                depositpaid: true,
+                bookingdates: {
+                    checkin: 'not-a-date',
+                    checkout: 'also-not-a-date'
+                },
+                additionalneeds: 'Breakfast'
+            }
+        });
+
+
+
+        console.log(`Status: ${response.status()}`);
+        const body = await response.json();
+        console.log(JSON.stringify(body, null, 2));
+        // BUG: API should return 400 for invalid date formats
+        // Raised: https://github.com/mwinteringham/restful-booker/issues/55
+        expect(response.status()).toBe(200);
+        expect(body.booking.bookingdates.checkin).toBe('0NaN-aN-aN');
+
+    });
+
 });
